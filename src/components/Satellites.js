@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '@clerk/clerk-react'; // ← Clerk token
+import axios from './api'; // ← Uses baseURL from src/api.js (live backend)
+import { useAuth } from '@clerk/clerk-react';
 
 const Satellites = ({ refreshKey }) => {
   const [satellites, setSatellites] = useState([]);
@@ -17,7 +17,7 @@ const Satellites = ({ refreshKey }) => {
     setError(null);
     try {
       const token = await getToken();
-      const response = await axios.get('http://localhost:3000/api/satellites', {
+      const response = await axios.get('/api/satellites', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -31,16 +31,15 @@ const Satellites = ({ refreshKey }) => {
     }
   };
 
-  // ← FIXED: refreshKey in dependency array
   useEffect(() => {
     fetchSatellites();
-  }, [refreshKey]); // ← This was the warning — now fixed
+  }, [refreshKey]);
 
   const handleDelete = async (noradId) => {
     if (!window.confirm(`Delete satellite "${satellites.find(s => s.norad_id === noradId)?.name || noradId}"?`)) return;
     try {
       const token = await getToken();
-      await axios.delete(`http://localhost:3000/delete-satellite/${noradId}`, {
+      await axios.delete(`/delete-satellite/${noradId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchSatellites();
@@ -53,7 +52,7 @@ const Satellites = ({ refreshKey }) => {
     if (!newName.trim()) return;
     try {
       const token = await getToken();
-      await axios.patch(`http://localhost:3000/api/satellite/${noradId}/rename`, 
+      await axios.patch(`/api/satellite/${noradId}/rename`, 
         { name: newName },
         { headers: { Authorization: `Bearer ${token}` } }
       );

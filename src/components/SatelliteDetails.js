@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import axios from './api'; 
 import Upload from './Upload';
 import SatelliteMap from './SatelliteMap';
-import { useAuth } from '@clerk/clerk-react'; // ← NEW: Get token
+import { useAuth } from '@clerk/clerk-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -30,7 +30,7 @@ ChartJS.register(
 
 const SatelliteDetails = () => {
   const { noradId } = useParams();
-  const { getToken } = useAuth(); // ← Get Clerk token
+  const { getToken } = useAuth();
 
   const [satellite, setSatellite] = useState(null);
   const [telemetry, setTelemetry] = useState([]);
@@ -40,7 +40,7 @@ const SatelliteDetails = () => {
   const [position, setPosition] = useState(null);
   const [activeTab, setActiveTab] = useState('tracking'); 
 
-  // 1. DATA FETCHING — WITH CLERK TOKEN
+  // 1. DATA FETCHING — WITH CLERK TOKEN + RELATIVE PATHS
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -49,10 +49,10 @@ const SatelliteDetails = () => {
         const token = await getToken();
 
         const [satRes, telRes] = await Promise.all([
-          axios.get(`http://localhost:3000/api/satellite/${noradId}`, {
+          axios.get(`/api/satellite/${noradId}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          axios.get(`http://localhost:3000/api/telemetry/${noradId}`, {
+          axios.get(`/api/telemetry/${noradId}`, {
             headers: { Authorization: `Bearer ${token}` }
           }).catch(() => ({ data: [] })),
         ]);
@@ -61,7 +61,7 @@ const SatelliteDetails = () => {
         setTelemetry(telRes.data);
 
         try {
-          const derivedRes = await axios.get(`http://localhost:3000/api/tle_derived/${noradId}`, {
+          const derivedRes = await axios.get(`/api/tle_derived/${noradId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setDerivedHistory(derivedRes.data);

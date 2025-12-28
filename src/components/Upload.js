@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from './api'; // ← Uses baseURL from src/api.js (live backend)
+import { useAuth } from '@clerk/clerk-react';
 
 const Upload = ({ noradId, onUploadSuccess }) => {
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { getToken } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,19 +21,24 @@ const Upload = ({ noradId, onUploadSuccess }) => {
 
     setIsLoading(true);
     try {
-      await axios.post('http://localhost:3000/upload/telemetry', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const token = await getToken();
+
+      await axios.post('/upload/telemetry', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       alert('Telemetry uploaded successfully!');
       setFile(null);
 
-      // THIS IS THE MAGIC — REFRESH GRAPH WITHOUT RELOAD
       if (onUploadSuccess) {
         onUploadSuccess();
       }
     } catch (error) {
       const msg = error.response?.data?.error || error.message || "Unknown error";
+      console.error('Telemetry upload error:', error);
       alert('Upload failed: ' + msg);
     } finally {
       setIsLoading(false);
@@ -69,7 +77,7 @@ const Upload = ({ noradId, onUploadSuccess }) => {
         <button
           type="submit"
           disabled={isLoading || !file}
-          className={`w-full py-4 rounded-xl font-bold text-lg tracking-wider transition-all duration-300
+          className={`w-full py-4 rounded-xl font-bold text-lg tracking-widest transition-all duration-300
             ${isLoading || !file
               ? 'bg-slate-700/60 text-cyan-600 cursor-not-allowed border border-slate-600'
               : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-xl shadow-cyan-500/60 hover:shadow-cyan-400/80 border border-cyan-400'
