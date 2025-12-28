@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from './api'; // ← Uses baseURL from api.js (live backend)
+import axios from '../api'; // ← Uses baseURL from api.js (live backend)
 import { useAuth } from '@clerk/clerk-react';
 
 const AddSatellite = ({ onSatelliteAdded }) => {

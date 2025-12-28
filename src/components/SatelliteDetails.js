@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from './api'; 
+import axios from '../api'; 
 import Upload from './Upload';
 import SatelliteMap from './SatelliteMap';
 import { useAuth } from '@clerk/clerk-react';
