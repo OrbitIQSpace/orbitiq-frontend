@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // ← Added useCallback
 import { Link } from 'react-router-dom';
 import axios from '../api'; 
 import { useAuth } from '@clerk/clerk-react';
@@ -12,7 +12,8 @@ const Satellites = ({ refreshKey }) => {
 
   const { getToken } = useAuth();
 
-  const fetchSatellites = async () => {
+  // ← Wrapped in useCallback to make it stable across renders
+  const fetchSatellites = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -29,12 +30,13 @@ const Satellites = ({ refreshKey }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [getToken]); // ← Only re-creates if getToken changes
 
+  // Now safe — fetchSatellites is stable
   useEffect(() => {
     fetchSatellites();
-  }, [refreshKey]);
-
+  }, [refreshKey, fetchSatellites]);
+  
   const handleDelete = async (noradId) => {
     if (!window.confirm(`Delete satellite "${satellites.find(s => s.norad_id === noradId)?.name || noradId}"?`)) return;
     try {
