@@ -1,31 +1,31 @@
-// src/pages/Landing.js — CLERK PRICING TABLE (FIXED ISS TRACKING)
+// src/pages/Landing.js — LIVE ISS TRACKING + PRODUCTION READY
 import React, { useEffect, useState } from 'react';
 import { PricingTable } from '@clerk/clerk-react';
-import { getSatelliteInfo } from 'tle.js'; 
+import { getSatelliteInfo } from 'tle.js';
 import SatelliteMap from '../components/SatelliteMap';
-import axios from 'axios';
+import axios from '../api'; // ← Uses baseURL from src/api.js (live backend)
 
 const Landing = () => {
   const [issPosition, setIssPosition] = useState(null);
   const [issTle, setIssTle] = useState(null);
   const [loadingTle, setLoadingTle] = useState(true);
 
-  // 1. Fetch latest ISS TLE
+  // 1. Fetch latest ISS TLE — relative path via api.js
   useEffect(() => {
     const fetchIssTle = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/public/iss');
+        const res = await axios.get('/api/public/iss');
         if (res.data && res.data.line1 && res.data.line2) {
           setIssTle(res.data);
         } else {
           throw new Error('Invalid TLE format');
         }
       } catch (err) {
-        console.warn('Failed to fetch live ISS TLE, using fallback');
+        console.info('Using fallback ISS TLE (backend fetch failed)');
         setIssTle({
           name: 'ISS (ZARYA)',
-          line1: "1 25544U 98067A   25357.51234567  .00009066  00000-0  16837-3 0  9999",
-          line2: "2 25544  51.6324  98.7522 0003166 281.5679  78.4955 15.49703708544229",
+          line1: "1 25544U 98067A   25360.53473604  .00013978  00000-0  25382-3 0  9999",
+          line2: "2 25544  51.6320  74.1581 0003231 305.5588  54.5099 15.49844261544995",
         });
       } finally {
         setLoadingTle(false);
@@ -37,16 +37,16 @@ const Landing = () => {
 
   // 2. Calculate live position from TLE
   useEffect(() => {
-    if (!issTle || loadingTle) return;
+    if (!issTle || loadingTle) {
+      setIssPosition(null);
+      return;
+    }
 
-    // Standardize TLE format for the library
     const tle = [issTle.line1.trim(), issTle.line2.trim()];
 
     const updateIss = () => {
       try {
         const info = getSatelliteInfo(tle, Date.now());
-        
-        // Safety check: ensure coordinates are valid numbers
         if (info && typeof info.lat === 'number' && typeof info.lng === 'number') {
           setIssPosition({
             lat: info.lat,
@@ -128,7 +128,7 @@ const Landing = () => {
       {/* PRICING — DEFAULT CLERK LOOK */}
       <section id="pricing" className="px-6 py-32">
         <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-5xl font-bold mb-16 text-cyan-300"> Pricing</h2>
+          <h2 className="text-5xl font-bold mb-16 text-cyan-300">Pricing</h2>
           
           <div className="max-w-6xl mx-auto">
             <PricingTable />

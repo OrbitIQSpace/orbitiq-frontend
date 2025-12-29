@@ -30,13 +30,13 @@ const Satellites = ({ refreshKey }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [getToken]); // ← Only re-creates if getToken changes
+  }, [getToken]); 
 
   // Now safe — fetchSatellites is stable
   useEffect(() => {
     fetchSatellites();
   }, [refreshKey, fetchSatellites]);
-  
+
   const handleDelete = async (noradId) => {
     if (!window.confirm(`Delete satellite "${satellites.find(s => s.norad_id === noradId)?.name || noradId}"?`)) return;
     try {
