@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+axios.defaults.baseURL = 'https://orbitiq-backend-v72n.onrender.com';
 
-axios.defaults.baseURL = apiUrl;
-
+if (import.meta.env.DEV) {
+  axios.defaults.baseURL = 'http://localhost:3000';
+}
 export default axios;
