@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-// CHANGE THIS TO YOUR RENDER URL
-axios.defaults.baseURL = 'https://orbitiq-backend-v72n.onrender.com';
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+axios.defaults.baseURL = apiUrl;
 
 export default axios;
