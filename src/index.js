@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import App from './App';
 import { ClerkProvider } from '@clerk/clerk-react';
 
-const publishableKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!publishableKey) {
   throw new Error('Missing Clerk Publishable Key — check your .env file');
