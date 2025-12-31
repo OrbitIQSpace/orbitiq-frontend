@@ -40,7 +40,7 @@ const SatelliteDetails = () => {
   const [position, setPosition] = useState(null);
   const [activeTab, setActiveTab] = useState('tracking'); 
 
-  // 1. DATA FETCHING — WITH CLERK TOKEN + RELATIVE PATHS
+  // DATA FETCHING — WITH CLERK TOKEN + RELATIVE PATHS
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
