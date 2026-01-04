@@ -80,14 +80,18 @@ const SatelliteDetails = () => {
 
   // 2. LIVE TLE TRACKING — WITH SAFETY CHECK
   useEffect(() => {
-    if (!satellite?.tle_line1 || !satellite?.tle_line2) {
-      console.warn('TLE lines missing — skipping live position');
+  // Use optional chaining and trim to ensure clean strings
+    const line1 = satellite?.tle_line1?.trim();
+    const line2 = satellite?.tle_line2?.trim();
+
+    if (!line1 || !line2) {
+      // Only warn if we've actually finished loading and they are still missing
+      if (!isLoading) console.warn('TLE lines missing for:', satellite?.name);
       setPosition(null);
       return;
     }
-
     const { getSatelliteInfo } = require('tle.js');
-    const tle = [satellite.tle_line1.trim(), satellite.tle_line2.trim()];
+    const tle = [line1, line2];
 
     const updatePosition = () => {
       try {
@@ -100,14 +104,15 @@ const SatelliteDetails = () => {
           });
         }
       } catch (err) {
-        console.warn('TLE.js failed:', err);
+        console.error('Tracking calculation error:', err);
       }
     };
 
     updatePosition();
-    const interval = setInterval(updatePosition, 5000);
+    // Update every 2 seconds for smoother ISS movement
+    const interval = setInterval(updatePosition, 2000); 
     return () => clearInterval(interval);
-  }, [satellite]);
+  }, [satellite, isLoading]);
 
   // 3. ORBITAL DATA SORTING
   const sortedHistory = useMemo(() => {

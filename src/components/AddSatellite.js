@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from '../api'; // ← Uses baseURL from api.js (live backend)
+import axios from '../api'; 
 import { useAuth } from '@clerk/clerk-react';
 
 const AddSatellite = ({ onSatelliteAdded }) => {
@@ -17,7 +17,7 @@ const AddSatellite = ({ onSatelliteAdded }) => {
       const token = await getToken();
 
       const response = await axios.post(
-        '/add-satellite', // ← Relative path — uses api.js baseURL
+        '/add-satellite', 
         { norad_id: noradId.trim() },
         {
           headers: {
