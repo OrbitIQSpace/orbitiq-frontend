@@ -1,16 +1,23 @@
-// src/pages/Landing.js — LIVE ISS TRACKING + PRODUCTION READY
+// src/pages/Landing.js — LIVE ISS TRACKING + CONTACT FORM
 import React, { useEffect, useState } from 'react';
-import { PricingTable } from '@clerk/clerk-react';
 import { getSatelliteInfo } from 'tle.js';
 import SatelliteMap from '../components/SatelliteMap';
-import axios from '../api'; // ← Uses baseURL from src/api.js (live backend)
+import axios from '../api';
 
 const Landing = () => {
   const [issPosition, setIssPosition] = useState(null);
   const [issTle, setIssTle] = useState(null);
   const [loadingTle, setLoadingTle] = useState(true);
 
-  // 1. Fetch latest ISS TLE — relative path via api.js
+  // Contact form state
+  const [formData, setFormData] = useState({
+    name: '',
+    company: '',
+    message: ''
+  });
+  const [formStatus, setFormStatus] = useState(''); // success / error / sending
+
+  // 1. Fetch latest ISS TLE
   useEffect(() => {
     const fetchIssTle = async () => {
       try {
@@ -64,6 +71,34 @@ const Landing = () => {
     return () => clearInterval(interval);
   }, [issTle, loadingTle]);
 
+  // Handle contact form submission
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setFormStatus('sending');
+
+    try {
+      // Using mailto: — simple, reliable, no backend needed
+      const subject = encodeURIComponent(`OrbitIQ Inquiry from ${formData.name}${formData.company ? ` (${formData.company})` : ''}`);
+      const body = encodeURIComponent(
+        `Name: ${formData.name}\nCompany: ${formData.company || 'Not provided'}\n\nMessage:\n${formData.message}`
+      );
+
+      window.location.href = `mailto:tyler@orbitiqspace.com?subject=${subject}&body=${body}`;
+
+      setFormStatus('success');
+      setFormData({ name: '', company: '', message: '' });
+    } catch (err) {
+      setFormStatus('error');
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       {/* HERO */}
@@ -79,8 +114,8 @@ const Landing = () => {
             Real-time orbital analytics • Decay prediction • Reboost timing • Satellite health
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-            <a href="#pricing" className="px-10 py-5 bg-cyan-600 hover:bg-cyan-500 rounded-full font-bold text-xl shadow-2xl shadow-cyan-500/50 transition-all">
-              View Pricing
+            <a href="#contact" className="px-10 py-5 bg-cyan-600 hover:bg-cyan-500 rounded-full font-bold text-xl shadow-2xl shadow-cyan-500/50 transition-all">
+              Get in Touch
             </a>
           </div>
         </div>
@@ -125,17 +160,72 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* PRICING — DEFAULT CLERK LOOK */}
-      <section id="pricing" className="px-6 py-32">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-5xl font-bold mb-16 text-cyan-300">Pricing</h2>
-          
-          <div className="max-w-6xl mx-auto">
-            <PricingTable />
-          </div>
+      {/* CONTACT FORM */}
+      <section id="contact" className="px-6 py-32">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-5xl font-bold mb-8 text-cyan-300">Interested in OrbitIQ?</h2>
+          <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
+            We're currently onboarding select operators. Fill out the form below and Tyler will reach out personally to discuss your mission needs.
+          </p>
 
-          <p className="text-slate-400 mt-12 text-lg">
-            Need 10+ satellites? <a href="mailto:tyler@orbitiqspace.com" className="text-cyan-400 hover:underline">Contact us</a> for custom pricing.
+          <form onSubmit={handleFormSubmit} className="space-y-8 max-w-2xl mx-auto">
+            <div>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Your Name"
+                required
+                className="w-full px-6 py-4 bg-slate-800/70 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition"
+              />
+            </div>
+
+            <div>
+              <input
+                type="text"
+                name="company"
+                value={formData.company}
+                onChange={handleInputChange}
+                placeholder="Company / Organization"
+                className="w-full px-6 py-4 bg-slate-800/70 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition"
+              />
+            </div>
+
+            <div>
+              <textarea
+                name="message"
+                value={formData.message}
+                onChange={handleInputChange}
+                placeholder="Tell us about your mission, fleet size, or specific needs..."
+                rows={6}
+                required
+                className="w-full px-6 py-4 bg-slate-800/70 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition resize-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={formStatus === 'sending'}
+              className={`w-full py-5 rounded-xl font-bold text-xl transition-all ${
+                formStatus === 'sending'
+                  ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                  : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-2xl shadow-cyan-500/50'
+              }`}
+            >
+              {formStatus === 'sending' ? 'Sending...' : 'Send Message'}
+            </button>
+
+            {formStatus === 'success' && (
+              <p className="text-green-400 text-lg">Message sent! We will be in touch soon.</p>
+            )}
+            {formStatus === 'error' && (
+              <p className="text-red-400 text-lg">Failed to send. Please email tyler@orbitiqspace.com directly.</p>
+            )}
+          </form>
+
+          <p className="text-slate-500 mt-12 text-sm">
+            Or email directly: <a href="mailto:tyler@orbitiqspace.com" className="text-cyan-400 hover:underline">tyler@orbitiqspace.com</a>
           </p>
         </div>
       </section>
