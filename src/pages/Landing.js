@@ -165,7 +165,7 @@ const Landing = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-5xl font-bold mb-8 text-cyan-300">Interested in OrbitIQ?</h2>
           <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
-            We're currently onboarding select operators. Fill out the form below and Tyler will reach out personally to discuss your mission needs.
+            We're currently onboarding select operators. Fill out the form below and we will reach out to discuss your mission needs.
           </p>
 
           <form onSubmit={handleFormSubmit} className="space-y-8 max-w-2xl mx-auto">
