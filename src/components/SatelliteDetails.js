@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom'; // ← Added useNavigate
 import axios from '../api'; 
 import Upload from './Upload';
 import SatelliteMap from './SatelliteMap';
@@ -31,6 +31,7 @@ ChartJS.register(
 const SatelliteDetails = () => {
   const { noradId } = useParams();
   const { getToken } = useAuth();
+  const navigate = useNavigate(); // ← To navigate to Digital Twin
 
   const [satellite, setSatellite] = useState(null);
   const [telemetry, setTelemetry] = useState([]);
@@ -40,7 +41,7 @@ const SatelliteDetails = () => {
   const [position, setPosition] = useState(null);
   const [activeTab, setActiveTab] = useState('tracking'); 
 
-  // DATA FETCHING — WITH CLERK TOKEN + RELATIVE PATHS
+  // DATA FETCHING
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -78,18 +79,17 @@ const SatelliteDetails = () => {
     fetchData();
   }, [noradId, getToken]);
 
-  // 2. LIVE TLE TRACKING — WITH SAFETY CHECK
+  // LIVE TLE TRACKING
   useEffect(() => {
-  // Use optional chaining and trim to ensure clean strings
     const line1 = satellite?.tle_line1?.trim();
     const line2 = satellite?.tle_line2?.trim();
 
     if (!line1 || !line2) {
-      // Only warn if we've actually finished loading and they are still missing
       if (!isLoading) console.warn('TLE lines missing for:', satellite?.name);
       setPosition(null);
       return;
     }
+
     const { getSatelliteInfo } = require('tle.js');
     const tle = [line1, line2];
 
@@ -109,19 +109,18 @@ const SatelliteDetails = () => {
     };
 
     updatePosition();
-    // Update every 2 seconds for smoother ISS movement
-    const interval = setInterval(updatePosition, 2000); 
+    const interval = setInterval(updatePosition, 2000);
     return () => clearInterval(interval);
   }, [satellite, isLoading]);
 
-  // 3. ORBITAL DATA SORTING
+  // ORBITAL DATA SORTING
   const sortedHistory = useMemo(() => {
     return [...derivedHistory].sort((a, b) => new Date(a.epoch) - new Date(b.epoch));
   }, [derivedHistory]);
 
   const latestDerived = sortedHistory[sortedHistory.length - 1];
 
-  // 4. CHART CONFIGURATION FACTORY
+  // CHART CONFIGURATION
   const getChartOptions = (title) => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -166,17 +165,29 @@ const SatelliteDetails = () => {
         </div>
 
         {/* NAVIGATION TABS */}
-        <div className="flex gap-2 mb-10 bg-slate-950 p-1.5 rounded-full border border-slate-800/50 w-fit">
+        <div className="flex flex-wrap gap-2 mb-10 bg-slate-950 p-1.5 rounded-full border border-slate-800/50 w-fit">
           {[
             { id: 'tracking', label: 'Global Tracking' },
             { id: 'history', label: 'Orbital Analysis' },
-            { id: 'telemetry', label: 'System Health' }
+            { id: 'telemetry', label: 'System Health' },
+            { id: 'digital-twin', label: 'Digital Twin' }
           ].map((tab) => (
             <button 
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
-                activeTab === tab.id ? 'bg-cyan-600 text-white shadow-xl shadow-cyan-900/20' : 'text-slate-500 hover:text-white'
+              onClick={() => {
+                if (tab.id === 'digital-twin') {
+                  // Navigate to dedicated Digital Twin page
+                  window.location.href = `/satellite/${noradId}/digital-twin`;
+                } else {
+                  setActiveTab(tab.id);
+                }
+              }}
+              className={`px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === tab.id && tab.id !== 'digital-twin' 
+                  ? 'bg-cyan-600 text-white shadow-xl shadow-cyan-900/20' 
+                  : tab.id === 'digital-twin'
+                    ? 'bg-purple-600 text-white hover:bg-purple-500 shadow-lg shadow-purple-500/30'
+                    : 'text-slate-500 hover:text-white'
               }`}
             >
               {tab.label}
@@ -184,7 +195,7 @@ const SatelliteDetails = () => {
           ))}
         </div>
 
-        {/* TAB 1: TRACKING */}
+        {/* TAB 1: GLOBAL TRACKING */}
         {activeTab === 'tracking' && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in fade-in duration-700">
             <div className="lg:col-span-1 space-y-4">
@@ -199,7 +210,7 @@ const SatelliteDetails = () => {
               <div className="bg-cyan-600 rounded-3xl p-6 shadow-2xl shadow-cyan-900/20">
                 <h3 className="text-[10px] font-black text-cyan-200 uppercase tracking-[0.2em] mb-2">Orbital Velocity</h3>
                 <p className="text-4xl font-black text-white font-mono leading-none">
-                   {parseFloat(latestDerived?.velocity_kms || 0).toFixed(3)}
+                  {parseFloat(latestDerived?.velocity_kms || 0).toFixed(3)}
                 </p>
                 <p className="text-[10px] font-bold text-cyan-200 mt-1 font-mono">KILOMETERS / SECOND</p>
               </div>

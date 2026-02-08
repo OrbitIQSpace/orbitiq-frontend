@@ -4,6 +4,7 @@ import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/clerk-reac
 import AddSatellite from './components/AddSatellite';
 import Satellites from './components/Satellites';
 import SatelliteDetails from './components/SatelliteDetails';
+import DigitalTwin from './components/DigitalTwin'; // ← NEW IMPORT
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -152,9 +153,17 @@ const AppContent = ({ isAddModalOpen, setIsAddModalOpen, handleSatelliteAdded, r
             </SignedIn>
           } />
 
+          {/* SATELLITE DETAILS ROUTE */}
           <Route path="/satellite/:noradId" element={
             <SignedIn>
               <SatelliteDetails />
+            </SignedIn>
+          } />
+
+          {/* NEW DIGITAL TWIN ROUTE */}
+          <Route path="/satellite/:noradId/digital-twin" element={
+            <SignedIn>
+              <DigitalTwin />
             </SignedIn>
           } />
         </Routes>
